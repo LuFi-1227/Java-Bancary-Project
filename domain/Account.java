@@ -74,12 +74,6 @@ public class Account {
         this.balance = 0.0;
     }
 
-    public record AccountId(UUID id){
-        public AccountId() {
-            this(UUID.randomUUID());
-        }
-    }
-
     private static Account account = null;
 
     public static Account getAccount(ClientId clientId) {
