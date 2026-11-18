@@ -4,6 +4,9 @@ import java.util.Optional;
 
 import exceptions.NullArgumentException;
 
+/**
+ * Representa os dados pessoais e o identificador de um cliente.
+ */
 public class Client {
     private ClientId id;
     private String name;
@@ -102,21 +105,57 @@ public class Client {
 
     @Override
     public String toString() {
-        return "Client [name=" + name + ", cpf=" + cpf + "]";
+        return "Client [id= " + id + ", name=" + name + ", cpf=" + cpf + "]";
     }
 
-    private static Client client = null;
-
-    public static Client getClient(Optional<String> nome, Optional<String> numero, Optional<String> password, Optional<String> cpf) {
-        if (client == null) {
+    public static Client getClient(Optional<String> nome, Optional<String> numero, Optional<String> password, Optional<String> cpf, Optional<Boolean> isValid) {
+        if (isValid.orElse(false) || isValid.isEmpty()) // Restrições podem vir a existir aqui
+        {
             String nomeStr = nome.orElseThrow(() -> new NullArgumentException("Nome é obrigatório"));
             String numeroStr = numero.orElseThrow(() -> new NullArgumentException("Número é obrigatório"));
             String passwordStr = password.orElseThrow(() -> new NullArgumentException("Senha é obrigatória"));
             String cpfStr = cpf.orElseThrow(() -> new NullArgumentException("CPF é obrigatório"));
+            if (nomeStr.isBlank()) {
+                throw new NullArgumentException("Nome não pode ser vazio");
+            }
+            String normalizedCpf = cpfStr.replaceAll("\\D", "");
+            if (!isValidCpf(normalizedCpf)) {
+                throw new NullArgumentException("CPF invalido");
+            }
+            if (passwordStr.isBlank()) {
+                throw new NullArgumentException("Senha não pode ser vazia");
+            }
 
-            client = new Client(nomeStr, numeroStr, passwordStr, cpfStr);
+            Client client = new Client(nomeStr.trim(), numeroStr.trim(), passwordStr, normalizedCpf);
+            return client;
+        }
+        else
+        {
+            throw new NullArgumentException("Algum requisito não foi atendido para criar o cliente");
         }
 
-        return client;
+    }
+
+    private static boolean isValidCpf(String cpf) {
+        if (cpf == null || cpf.length() != 11 || cpf.chars().distinct().count() == 1) {
+            return false;
+        }
+        try {
+            int firstDigit = calculateCpfDigit(cpf.substring(0, 9), 10);
+            int secondDigit = calculateCpfDigit(cpf.substring(0, 10), 11);
+            return cpf.charAt(9) - '0' == firstDigit
+                    && cpf.charAt(10) - '0' == secondDigit;
+        } catch (NumberFormatException exception) {
+            return false;
+        }
+    }
+
+    private static int calculateCpfDigit(String digits, int factor) {
+        int sum = 0;
+        for (char digit : digits.toCharArray()) {
+            sum += (digit - '0') * factor--;
+        }
+        int remainder = (sum * 10) % 11;
+        return remainder == 10 ? 0 : remainder;
     }
 }

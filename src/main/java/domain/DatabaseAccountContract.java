@@ -1,7 +1,12 @@
 package domain;
 import java.util.List;
+
+/**
+ * Contrato de persistência para contas bancárias.
+ */
+
 public interface DatabaseAccountContract {
-    void add(Account account);
+    Account add(Account account);
     Account get(AccountId id);
     void remove(AccountId id);
     boolean contains(AccountId id);
